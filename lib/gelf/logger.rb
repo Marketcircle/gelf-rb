@@ -28,9 +28,16 @@ module GELF
         message_hash.merge!(self.class.extract_hash_from_exception(message))
       end
 
-      if message_hash.key?('short_message') && !message_hash['short_message'].empty?
-        notify_with_level(level, message_hash)
+      return if !message_hash.key?('short_message') || message_hash['short_message'].empty?
+
+      if @formatter&.current_tags
+        Array(@formatter.current_tags).each do |tag|
+          message_hash.merge!("_#{tag}" => 'true')
+        end
+        message_hash.merge!('_tags' => @formatter.current_tags.join(', '))
       end
+
+      notify_with_level(level, message_hash)
     end
 
     # Redefines methods in +Notifier+.
