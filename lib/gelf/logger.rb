@@ -31,7 +31,9 @@ module GELF
       return if !message_hash.key?('short_message') || message_hash['short_message'].empty?
 
       if @formatter&.current_tags
-        @formatter.current_tags.each do |tag|
+        uuid_regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        filtered_tags = @formatter.current_tags.reject { |tag| tag.match?(uuid_regex) }
+        filtered_tags.each do |tag|
           message_hash.merge!("_#{tag}" => 'true')
         end
         message_hash.merge!('_tags' => @formatter.current_tags.join(', '))
